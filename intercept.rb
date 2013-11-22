@@ -1,35 +1,36 @@
 require 'rubygems'
 require 'twilio-ruby'
 require 'sinatra'
-require 'mail'
+require 'rest-client'
  
 PHONE = 'SMSFORK_PHONE'
 EMAIL = 'SMSFORK_EMAIL'
 
+@@client = Twilio::REST::Client.new ENV['TWILIO_SID'], ENV['TWILIO_TOKEN']
+
 def forward_sms(text)
-  Twilio::TwiML::Response.new do |r|
-    r.Message do |m|
-      m.Body text
-      m.To ENV[PHONE] # (XXX) XXX-XXXX => +1XXXXXXXXXX
-    end
-  end
+  @@client.account.messages.create(
+    from: "+15102924153",
+    to: ENV[PHONE],  # (XXX) XXX-XXXX => +1XXXXXXXXXX
+    body: text
+  ) unless ENV[PHONE].nil?
 end
 
-def send_mail(header, text)
-  Mail.deliver do
-    from    'leo@SMSFork'
-    to      ENV[EMAIL]
-    subject header
-    body text
-  end
+def send_mail(header, body)
+  RestClient.post("https://api:#{ENV['MAILGUN_KEY']}@api.mailgun.net/v2/sandbox2462.mailgun.org/messages",
+    from: 'leo@SMSFork',
+    to: ENV[EMAIL],
+    subject: header,
+    text: body
+  ) unless ENV[EMAIL].nil?
 end
 
-get '/' do
+post '/' do
   forward_sms params[:Body]
   send_mail "SMS from [#{params[:From]}]", params[:Body]
 end
 
-get '/stanford-auth' do
+post '/stanford-auth' do
   forward_sms params[:Body]
 
   code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body]) and code[0]
