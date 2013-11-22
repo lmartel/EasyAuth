@@ -33,8 +33,8 @@ end
 post '/stanford-auth' do
   forward_sms params[:Body]
 
-  code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body]) and code[0]
-  send_mail "[#{params[:From]}] Stanford Authentication Code#{': ' + code if code}", params[:Body]
+  code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body])
+  send_mail "[#{params[:From]}] Stanford Authentication Code#{': ' + code[0] if code}", params[:Body]
 end
 
 raise "Missing environment variables #{PHONE} and #{EMAIL}. You need to set at least one!" if ENV[PHONE].nil? and ENV[EMAIL].nil?
