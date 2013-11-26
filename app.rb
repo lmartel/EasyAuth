@@ -184,7 +184,7 @@ post '/make-number' do
     end
 
     number.update(
-      sms_method: "POST", 
+      sms_method: "GET", 
       sms_url: "#{APP_URL}/auth/#{user.id}", 
       capabilities: {"sms" => true, "mms" => false},
       voice_method: "GET",
@@ -206,7 +206,7 @@ get '/voice' do
   response.text
 end
 
-post '/auth/:user' do
+get '/auth/:user' do
   user = User[id: params[:user]]
   code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body])
   if user and code and /Stanford/.match(params[:Body])
