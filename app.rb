@@ -20,7 +20,8 @@ configure do
   use Rack::Session::Cookie, secret: ENV['SECRET_TOKEN']
   use Rack::Csrf, :raise => true
 
-  APP_URL = "http://easyauth.herokuapp.com"
+  APP_DOMAIN = "easyauth.herokuapp.com"
+  APP_URL = "http://#{APP_DOMAIN}"
   TWILIO_CLIENT = Twilio::REST::Client.new ENV['TWILIO_SID'], ENV['TWILIO_TOKEN']
 
   DB.create_table? :users do
@@ -76,7 +77,7 @@ helpers do
 
   def send_mail(user, header, body)
     RestClient.post("https://api:#{ENV['MAILGUN_KEY']}@api.mailgun.net/v2/sandbox2462.mailgun.org/messages",
-      from: 'EasyAuth@easyauth.lpm.io',
+      from: "EasyAuth@#{APP_DOMAIN}",
       to: user.email,
       subject: header,
       text: body

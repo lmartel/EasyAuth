@@ -12,7 +12,10 @@
         <% end %>
     </h1>
     Just use your EasyAuth number for SMS Two-Step Authentication to get the codes sent to your email address.
-    <h3>How to change your Two-Step Authentication</h3>
+    <% if user.phone %>
+        <br>The codes will also be sent to your phone at <%= format_phone(user.phone) %>.
+    <% end %>
+    <h3>How to change your Two-Step Authentication:</h3>
     <div class="list-group instructions">
         <div class="list-group-item">
             <span class="badge">1</span>
@@ -58,12 +61,12 @@
         <div class="list-group-item">
             <span class="badge">9</span>
             <h4 class="list-group-item-heading">Check your email for your authentication code</h4>
-            <p class="list-group-item-text">TODO email pic</p>
+            <p class="list-group-item-text"><img src="images/email.png"></p>
         </div>
         <div class="list-group-item">
             <span class="badge">10</span>
             <h4 class="list-group-item-heading">Enter your code and press "verify two-step authentication"</h4>
-            <p class="list-group-item-text">TODO verify pic</p>
+            <p class="list-group-item-text"><img src="images/verify.png"></p>
         </div>
         <div class="list-group-item">
             <span class="badge">11</span>
