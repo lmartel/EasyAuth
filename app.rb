@@ -76,7 +76,7 @@ helpers do
 
   def send_mail(user, header, body)
     RestClient.post("https://api:#{ENV['MAILGUN_KEY']}@api.mailgun.net/v2/sandbox2462.mailgun.org/messages",
-      from: 'EasyAuth',
+      from: 'EasyAuth@easyauth.lpm.io',
       to: user.email,
       subject: header,
       text: body
