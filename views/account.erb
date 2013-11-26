@@ -1,0 +1,99 @@
+<% user = User[id: current_user] %>
+<div class="col-lg-9">
+    Hello, <strong><%= user.email %></strong>!
+    Your EasyAuth number: <h1 class="well number-display">
+        <% if user.virtual_phone %>
+            <%= format_phone(user.virtual_phone) %>
+        <% else %>
+            <form class="form-signin" action="/make-number" method="POST">
+                <%= csrf_tag %>
+                <button class="btn btn-lg btn-success btn-block" type="submit">Buy EasyAuth number for $3</button>
+            </form>
+        <% end %>
+    </h1>
+    Just use your EasyAuth number for SMS Two-Step Authentication to get the codes sent to your email address.
+    <h3>How to change your Two-Step Authentication</h3>
+    <div class="list-group instructions">
+        <div class="list-group-item">
+            <span class="badge">1</span>
+            <h4 class="list-group-item-heading">Go to Stanford Accounts</h4>
+            <p class="list-group-item-text"><a href="https://accounts.stanford.edu" target="_blank">accounts.stanford.edu</a></p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">2</span>
+            <h4 class="list-group-item-heading">Click "Manage"</h4>
+            <p class="list-group-item-text"><img src="images/manage.png"></p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">3</span>
+            <h4 class="list-group-item-heading">Log in.</h4>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">4</span>
+            <h4 class="list-group-item-heading">Click the "Two-Step Auth" tab, then the "Change or renew" button</h4>
+            <p class="list-group-item-text"><img src="images/change_or_renew.png"></p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">5</span>
+            <h4 class="list-group-item-heading">Log in (again, ugh)</h4>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">6</span>
+            <h4 class="list-group-item-heading">Click "continue"</h4>
+            <p class="list-group-item-text"><img src="images/continue.png"></p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">7</span>
+            <h4 class="list-group-item-heading">Click the "SMS" icon</h4>
+            <p class="list-group-item-text"><img src="images/change_SMS.png"></p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">8</span>
+            <h4 class="list-group-item-heading">
+                Enter your EasyAuth number then click continue.
+                <% if user.virtual_phone %>Your EasyAuth number is <%= format_phone(user.virtual_phone) %><% end %>
+            </h4>
+            <p class="list-group-item-text"><img src="images/enter_number.png"></p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">9</span>
+            <h4 class="list-group-item-heading">Check your email for your authentication code</h4>
+            <p class="list-group-item-text">TODO email pic</p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">10</span>
+            <h4 class="list-group-item-heading">Enter your code and press "verify two-step authentication"</h4>
+            <p class="list-group-item-text">TODO verify pic</p>
+        </div>
+        <div class="list-group-item">
+            <span class="badge">11</span>
+            <h4 class="list-group-item-heading">That's it!</h4>
+            <p class="list-group-item-text">Your Two-Step Auth codes will be emailed to you from now on.</p>
+        </div>
+    </div>
+</div>
+<div class="col-sm-3">
+    <form class="form-signin" action="/logout" method="POST">
+        <%= csrf_tag %>
+        <button class="btn btn-lg btn-primary btn-block logout" type="submit">Log out</button>
+    </form>
+    <form class="form-signin form-edit" action="/edit" method="POST">
+        <h3 class="form-signin-heading">Edit account info:</h3>
+        <span>
+        <input type="text" name="email" class="form-control" placeholder="<%= user.email %>">
+        <input type="text" name="phone" class="form-control" placeholder="<%= format_phone(user.phone) or 'Add phone number'%>">
+        <% if user.phone %>
+            <label>Delete phone number<input type="checkbox" name="delete_phone" class="delete-phone-number" value="1"></label>
+        <% else %>
+            <p>Adding a phone number will send your authentication codes to both your email and your cell phone.</p>
+        <% end %>
+        </span>
+        <input type="hidden" name="_method" value="put">
+        <%= csrf_tag %>
+        <span>
+        <input type="password" name="password" class="form-control" placeholder="Change password">
+        <input type="password" name="password_confirmation" class="form-control" placeholder="Confirm new password">
+        </span>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" onclick="return validateEdit()">Submit changes</button>
+    </form>
+</div>
