@@ -240,7 +240,7 @@ post '/make-number' do
 end
 
 post '/payment/*' do |userID|
-  response = validate_IPN_notification(params[:data])
+  response = validate_IPN_notification(request.body.read)
   case response
   when "VERIFIED"
     halt 401 unless User[id: userID]
