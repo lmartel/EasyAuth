@@ -7,7 +7,9 @@ $(document).ready(function(){
 	for(var i = 0; i < params.length; i++){
 		var param = params[i].split("=");
 		if(param[0] == "err") handleError(param[1]);
+		if(param[0] == "msg") handleMessage(param[1]);
 	}
+	history.replaceState(null, document.title, window.location.pathname);
 });
 
 function handleError(err){
@@ -16,14 +18,33 @@ function handleError(err){
 	else if(err === "invalid_password") highlightErrors(".form-login", ["password"]);
 }
 
-function validateEmail(klass){
+function handleMessage(msg){
+	if(msg === "password_changed") $(".container").prepend('<div class="message alert alert-success">Your password has been changed.</div>');
+}
+
+function validateEmail(klass, allowBlank){
 	var email = $(klass + " input[name=email]").val();
+	if(allowBlank && email.length === 0) return true;
 	return email.match(/.+@(.+\.)+.+/);
 }
 
-function validatePassword(klass){
+function validatePhone(klass){
+	var phone = $(klass + " input[name=phone]").val();
+	if(phone.length > 0){
+		phone = phone.replace(/\D+/g, "");
+		if(phone.length !== 10) return false;
+	}
+	return true;
+}
+
+function validatePassword(klass, allowBlank){
 	var password = $(klass + " input[name=password]").val();
+	if(allowBlank && password.length === 0) return true;
 	return password.length >= 6;
+}
+
+function validatePasswordConfirmation(klass){
+	return $(klass + " input[name=password]").val() === $(klass + " input[name=password_confirmation]").val();
 }
 
 function highlightErrors(klass, fields){
@@ -38,16 +59,9 @@ function validateSignup(){
 	var KLASS = ".form-signup";
 	var errors = [];
 	if(!validateEmail(KLASS)) errors.push("email");
-
-	var phone = $(KLASS + " input[name=phone]").val();
-	if(phone.length > 0){
-		phone = phone.replace(/\D+/g, "");
-		if(phone.length < 10 || phone.length > 11) errors.push("phone");
-	}
-
+	if(!validatePhone(KLASS)) errors.push("phone");
 	if(!validatePassword(KLASS)) errors.push("password");
-
-	if($(KLASS + " input[name=password]").val() !== $(KLASS + " input[name=password_confirmation]").val()) errors.push("password_confirmation");
+	if(!validatePasswordConfirmation(KLASS)) errors.push("password_confirmation");
 
 	if(errors.length === 0) return true;
 	highlightErrors(KLASS, errors);
@@ -59,6 +73,19 @@ function validateLogin(){
 	var errors = [];
 	if(!validateEmail(KLASS)) errors.push("email");
 	if(!validatePassword(KLASS)) errors.push("password");
+
+	if(errors.length === 0) return true;
+	highlightErrors(KLASS, errors);
+	return false;
+}
+
+function validateEdit(){
+	var KLASS = ".form-edit";
+	var errors = [];
+	if(!validateEmail(KLASS, true)) errors.push("email");
+	if(!validatePhone(KLASS)) errors.push("phone");
+	if(!validatePassword(KLASS, true)) errors.push("password");
+	if(!validatePasswordConfirmation(KLASS)) errors.push("password_confirmation");
 
 	if(errors.length === 0) return true;
 	highlightErrors(KLASS, errors);

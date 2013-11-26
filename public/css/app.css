@@ -29,7 +29,6 @@ body {
   z-index: 2;
 }
 
-
 .form-signin input {
   margin-bottom: -1px;
   border-radius: 0;
@@ -49,4 +48,25 @@ body {
 .form-control.error {
   border-color: #FF3838;
   z-index: 1;
+}
+
+.form-edit input.delete-phone-number {
+  margin-left: 10px;
+}
+
+.number-display {
+  text-align: center;
+}
+
+.instructions .badge {
+  float: left;
+  margin-right: 5px;
+}
+
+.instructions img {
+  max-width: 100%;
+}
+
+.message {
+  text-align: center;
 }
