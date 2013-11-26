@@ -27,7 +27,7 @@ configure do
   use Rack::Protection::HttpOrigin, origin_whitelist: ["https://www.paypal.com/ipn"]
 
   APP_EMAIL = "leopmartel@gmail.com"
-  APP_DOMAIN = "easyauth.herokuapp.com"
+  APP_DOMAIN = "auth.lpm.io"
   APP_URL = "http://#{APP_DOMAIN}"
   TWILIO_CLIENT = Twilio::REST::Client.new ENV['TWILIO_SID'], ENV['TWILIO_TOKEN']
 
