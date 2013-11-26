@@ -240,9 +240,9 @@ post '/make-number' do
 end
 
 post '/payment/*' do |userID|
-  response = validate_IPN_notification(request.body.read)
-  case response
-  when "VERIFIED"
+  # response = validate_IPN_notification(env['rack.input'].gets)
+  # case response
+  # when "VERIFIED"
     halt 401 unless User[id: userID]
     halt 403 if params[:payment_status] != "Completed" # payment not completed
     halt 404 if Transaction[txn_id: params[:txn_id]] # already processed
@@ -254,14 +254,14 @@ post '/payment/*' do |userID|
       user = User[id: userID]
       user.paid_until = transaction.timestamp >> 1
       user.save
-      halt 201
+      halt 200
     end
     halt 400
-  when "INVALID"
-    send_mail nil, "Invalid Paypal IPN detected!", params.to_s
-  else
-    raise "Paypal IPN improperly parsed"
-  end
+  # when "INVALID"
+    # send_mail nil, "Invalid Paypal IPN detected!", params.to_s
+  # else
+    # raise "Paypal IPN improperly parsed"
+  # end
 end
 
 # Reject all voice calls to all numbers
@@ -282,4 +282,8 @@ get '/auth/:user' do
     user.most_recent_message = DateTime.now
     user.save
   end
+end
+
+get '/test' do
+  env['rack.input'].gets
 end
