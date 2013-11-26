@@ -258,7 +258,7 @@ post '/payment/*' do |userID|
     end
     halt 400
   when "INVALID"
-    send_mail nil, "Invalid Paypal IPN detected!", params.to_s # TODO actually send this to me
+    send_mail nil, "Invalid Paypal IPN detected!", params.to_s
   else
     raise "Paypal IPN improperly parsed"
   end
