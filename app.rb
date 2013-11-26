@@ -18,7 +18,8 @@ end
 
 configure do
   use Rack::Session::Cookie, secret: ENV['SECRET_TOKEN']
-  use Rack::Csrf, :raise => true
+  use Rack::Protection, except: :http_origin
+  use Rack::Protection::HttpOrigin, origin_whitelist: ["https://www.paypal.com/ipn"]
 
   APP_DOMAIN = "easyauth.herokuapp.com"
   APP_URL = "http://#{APP_DOMAIN}"
@@ -197,6 +198,12 @@ post '/make-number' do
   end
 
   redirect '/'
+end
+
+post '/payment' do
+  headers 'Allow' => 'POST', 'Access-Control-Allow-Origin' => 'https://www.paypal.com/ipn'
+  body 'it works!'
+  send_mail User[id: 1], "Paypal POST succeeded", params.to_s
 end
 
 # Reject all voice calls to all numbers

@@ -7,7 +7,7 @@
         <% else %>
             <form class="form-signin" action="/make-number" method="POST">
                 <%= csrf_tag %>
-                <button class="btn btn-lg btn-success btn-block" type="submit">Buy EasyAuth number for $3</button>
+                <%= erb :buy %>
             </form>
         <% end %>
     </h1>
