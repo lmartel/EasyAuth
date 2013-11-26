@@ -1,4 +1,3 @@
-<!--<button class="btn btn-lg btn-success btn-block" type="submit">Buy EasyAuth number for $3</button>-->
 <script src="js/paypal-button.min.js?merchant=leopmartel-facilitator@gmail.com" 
     data-button="subscribe" 
     data-name="EasyAuth" 
@@ -6,5 +5,5 @@
     data-recurrence="1" 
     data-period="M" 
     data-callback="<%= APP_URL %>/payment/<%= current_user %>" 
-    data-env="sandbox"
+    <% unless Sinatra::Base.production? %>data-env="sandbox"<% end %>
 ></script>

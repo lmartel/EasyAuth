@@ -4,13 +4,13 @@
     Your EasyAuth number: <h1 class="well number-display">
         <% if user.virtual_phone %>
             <%= format_phone(user.virtual_phone) %>
-        <% else %>
-            <%= erb :buy %>
-            <!--
-            <form class="form-signin" action="/make-number" method="POST">
+        <% elsif user.paid? %>
+            <form class="form-signin" action="/get_number" method="POST">
+                <button class="btn btn-lg btn-success btn-block" type="submit">Generate EasyAuth number</button>
                 <%= csrf_tag %>
             </form>
-            -->
+        <% else %>
+            Get EasyAuth for $2.00/month <%= erb :buy %>
         <% end %>
     </h1>
     Just use your EasyAuth number for SMS Two-Step Authentication to get the codes sent to your email address.

@@ -113,7 +113,7 @@ helpers do
                          'Content-Length' => "#{raw.size}",
                          'User-Agent' => "My custom user agent"
                        ).body
-  end
+  end  
 end
 
 class User < Sequel::Model
@@ -125,6 +125,10 @@ class User < Sequel::Model
     validates_presence :email
     validates_unique [:email, :twilio_sid, :virtual_phone]
     errors.add(:phone, 'Incomplete phone number') if phone and phone.length != 12
+  end
+
+  def paid?
+    paid_until and paid_until > Time.now
   end
 end
 
@@ -201,7 +205,7 @@ post '/logout' do
   redirect '/logout'
 end
 
-post '/make-number' do
+post '/get_number' do
   user = User[id: current_user]
   # Generate Twilio subaccount for user
   unless user.twilio_sid
@@ -219,9 +223,19 @@ post '/make-number' do
       number = n
     end
 
+    spoofed = false
+
     # If it doesn't, buy one
     unless number
-      redirect '/buy-stuff'
+      return unless user.paid? # double-check user has paid
+      numbers = account.available_phone_numbers.get('US').local.list(area_code: "650")
+      if Sinatra::Base.production?
+        number = numbers[0]
+        account.incoming_phone_numbers.create(phone_number: number.phone_number)
+      else
+        number = TWILIO_TEST_CLIENT.account.incoming_phone_numbers.create(phone_number: "+15005550006")
+        spoofed = true
+      end
     end
 
     number.update(
@@ -230,7 +244,7 @@ post '/make-number' do
       capabilities: {"sms" => true, "mms" => false},
       voice_method: "GET",
       voice_url: "#{APP_URL}/voice"
-    )
+    ) unless spoofed
 
     user.virtual_phone = number.phone_number
     user.save
@@ -239,6 +253,7 @@ post '/make-number' do
   redirect '/'
 end
 
+# TODO: verification
 post '/payment/*' do |userID|
   # response = validate_IPN_notification(env['rack.input'].gets)
   # case response
@@ -277,11 +292,13 @@ get '/auth/:user' do
   user = User[id: params[:user]]
   code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body])
   halt unless user and code and /Stanford/.match(params[:Body])
-  if true
+  if user.paid?
     forward_sms(user, params[:Body]) if user.phone
     send_mail user, "[#{params[:From]}] Stanford Authentication Code: #{code[0]}", params[:Body]
     user.most_recent_message = DateTime.now
     user.save
+  else
+    send_mail user, "Stanford Authentication Code: not found :(", "Your EasyAuth subscription has expired! Go to #{APP_URL} to renew, or contact #{APP_EMAIL} for help."
   end
 end
 
