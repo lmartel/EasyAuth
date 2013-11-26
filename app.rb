@@ -67,7 +67,7 @@ helpers do
   end
 
   def forward_sms(user, text)
-    TWILIO_CLIENT.account.messages.create(
+    TWILIO_CLIENT.accounts.get(user.twilio_sid).messages.create(
       from: user.virtual_phone,
       to: user.phone,
       body: text
