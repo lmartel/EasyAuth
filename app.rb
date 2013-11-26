@@ -6,9 +6,8 @@ require 'sequel'
 require 'rack/csrf'
 
 configure :production do
-  raise "Missing environment variables" unless ENV['DATABASE_URL'] and ENV['TWILIO_SID'] and ENV['TWILIO_TOKEN'] and ENV['SECRET_TOKEN'] and ENV['MAILGUN_KEY']
-  DB = Sequel.connect(ENV['DATABASE_URL'])
-  
+  raise "Missing environment variables" unless ENV['HEROKU_POSTGRESQL_COPPER_URL'] and ENV['TWILIO_SID'] and ENV['TWILIO_TOKEN'] and ENV['SECRET_TOKEN'] and ENV['MAILGUN_KEY']
+  DB = Sequel.connect(ENV['HEROKU_POSTGRESQL_COPPER_URL'])
 end
 
 configure :development do
