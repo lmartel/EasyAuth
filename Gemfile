@@ -16,3 +16,5 @@ gem 'rest-client'
 # Postgres database for heroku
 gem 'pg'
 
+# For processing paypal requests
+gem 'activemerchant'

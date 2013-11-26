@@ -5,10 +5,12 @@
         <% if user.virtual_phone %>
             <%= format_phone(user.virtual_phone) %>
         <% else %>
+            <%= erb :buy %>
+            <!--
             <form class="form-signin" action="/make-number" method="POST">
                 <%= csrf_tag %>
-                <%= erb :buy %>
             </form>
+            -->
         <% end %>
     </h1>
     Just use your EasyAuth number for SMS Two-Step Authentication to get the codes sent to your email address.

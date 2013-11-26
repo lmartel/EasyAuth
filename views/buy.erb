@@ -5,6 +5,6 @@
     data-amount="2.00" 
     data-recurrence="1" 
     data-period="M" 
-    data-callback="http://easyauth.herokuapp.com/payment" 
+    data-callback="<%= APP_URL %>/payment/<%= current_user %>" 
     data-env="sandbox"
 ></script>

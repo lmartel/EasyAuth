@@ -1,9 +1,14 @@
+require 'net/http'
+require 'openssl'
+
 require 'rubygems'
-require 'twilio-ruby'
 require 'sinatra'
-require 'rest-client'
 require 'sequel'
 require 'rack/csrf'
+
+require 'twilio-ruby'
+require 'rest-client'
+
 
 configure :production do
   raise "Missing environment variables" unless ENV['HEROKU_POSTGRESQL_COPPER_URL'] and ENV['TWILIO_SID'] and ENV['TWILIO_TOKEN'] and ENV['SECRET_TOKEN'] and ENV['MAILGUN_KEY']
@@ -21,6 +26,7 @@ configure do
   use Rack::Protection, except: :http_origin
   use Rack::Protection::HttpOrigin, origin_whitelist: ["https://www.paypal.com/ipn"]
 
+  APP_EMAIL = "leopmartel@gmail.com"
   APP_DOMAIN = "easyauth.herokuapp.com"
   APP_URL = "http://#{APP_DOMAIN}"
   TWILIO_CLIENT = Twilio::REST::Client.new ENV['TWILIO_SID'], ENV['TWILIO_TOKEN']
@@ -34,7 +40,16 @@ configure do
     String :virtual_phone
     String :password_digest
     DateTime :most_recent_message
+    DateTime :paid_until
     unique [:email, :twilio_sid, :virtual_phone]
+  end
+
+  DB.create_table? :transactions do
+    primary_key :id
+    Integer :user_id
+    String :txn_id
+    String :amount
+    DateTime :timestamp
   end
 end 
 
@@ -77,12 +92,27 @@ helpers do
   end
 
   def send_mail(user, header, body)
+    email = user ? user.email : APP_EMAIL
     RestClient.post("https://api:#{ENV['MAILGUN_KEY']}@api.mailgun.net/v2/sandbox2462.mailgun.org/messages",
       from: "EasyAuth@#{APP_DOMAIN}",
-      to: user.email,
+      to: email,
       subject: header,
       text: body
     )
+  end
+
+  # See http://stackoverflow.com/questions/14316426/is-there-a-paypal-ipn-code-sample-for-ruby-on-rails
+  def validate_IPN_notification(raw)
+    uri = URI.parse('https://www.paypal.com/cgi-bin/webscr?cmd=_notify-validate')
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.open_timeout = 60
+    http.read_timeout = 60
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.use_ssl = true
+    response = http.post(uri.request_uri, raw,
+                         'Content-Length' => "#{raw.size}",
+                         'User-Agent' => "My custom user agent"
+                       ).body
   end
 end
 
@@ -95,6 +125,15 @@ class User < Sequel::Model
     validates_presence :email
     validates_unique :email, :twilio_sid, :virtual_phone
     errors.add(:phone, 'Incomplete phone number') if phone and phone.length != 12
+  end
+end
+
+class Transaction < Sequel::Model
+  plugin :validation_helpers
+
+  def validate
+    super
+    validates_presence :user_id, :txn_id, :amount, :timestamp
   end
 end
 
@@ -200,10 +239,29 @@ post '/make-number' do
   redirect '/'
 end
 
-post '/payment' do
-  headers 'Allow' => 'POST', 'Access-Control-Allow-Origin' => 'https://www.paypal.com/ipn'
-  body 'it works!'
-  send_mail User[id: 1], "Paypal POST succeeded", params.to_s
+post '/payment/*' do |userID|
+  response = validate_IPN_notification(params[:data])
+  case response
+  when "VERIFIED"
+    halt 401 unless User[id: userID]
+    halt 403 if params[:payment_status] != "Completed" # payment not completed
+    halt 404 if Transaction[txn_id: params[:txn_id]] # already processed
+    # halt if params[:receiver_email] != APP_EMAIL
+    halt 406 if params[:mc_currency] != "USD"
+    halt 402 if params[:payment_gross] != "2.00"
+    transaction = Transaction.new user_id: userID, txn_id: params[:txn_id], amount: params[:payment_gross], timestamp: DateTime.now
+    if transaction.save
+      user = User[id: userID]
+      user.paid_until = transaction.timestamp >> 1
+      user.save
+      halt 201
+    end
+    halt 400
+  when "INVALID"
+    send_mail nil, "Invalid Paypal IPN detected!", params.to_s # TODO actually send this to me
+  else
+    raise "Paypal IPN improperly parsed"
+  end
 end
 
 # Reject all voice calls to all numbers
@@ -217,8 +275,11 @@ end
 get '/auth/:user' do
   user = User[id: params[:user]]
   code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body])
-  if user and code and /Stanford/.match(params[:Body])
+  halt unless user and code and /Stanford/.match(params[:Body])
+  if true
     forward_sms(user, params[:Body]) if user.phone
     send_mail user, "[#{params[:From]}] Stanford Authentication Code: #{code[0]}", params[:Body]
+    user.most_recent_message = DateTime.now
+    user.save
   end
 end
