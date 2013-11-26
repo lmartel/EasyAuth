@@ -1,4 +1,4 @@
-<script src="js/paypal-button.min.js?merchant=leopmartel-facilitator@gmail.com" 
+<script src="js/paypal-button.min.js?merchant=<%= if Sinatra::Base.production? then 'leopmartel' else 'leopmartel-facilitator' end %>@gmail.com" 
     data-button="subscribe" 
     data-name="EasyAuth" 
     data-amount="2.00" 
