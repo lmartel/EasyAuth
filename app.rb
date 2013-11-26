@@ -249,10 +249,11 @@ post '/payment/*' do |userID|
     # halt if params[:receiver_email] != APP_EMAIL
     halt 406 if params[:mc_currency] != "USD"
     halt 402 if params[:payment_gross] != "2.00"
-    transaction = Transaction.new user_id: userID, txn_id: params[:txn_id], amount: params[:payment_gross], timestamp: DateTime.now
+    now = DateTime.now
+    transaction = Transaction.new user_id: userID, txn_id: params[:txn_id], amount: params[:payment_gross], timestamp: now
     if transaction.save
       user = User[id: userID]
-      user.paid_until = transaction.timestamp >> 1
+      user.paid_until = now >> 1
       user.save
       halt 200
     end
