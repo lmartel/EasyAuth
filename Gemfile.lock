@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    bcrypt-ruby (3.1.2)
     builder (3.2.2)
     jwt (0.1.8)
       multi_json (>= 1.5)
@@ -9,8 +10,14 @@ GEM
     rack (1.5.2)
     rack-protection (1.5.1)
       rack
+    rack_csrf (2.4.0)
+      rack (>= 0.9)
     rest-client (1.6.7)
       mime-types (>= 1.16)
+    sequel (4.4.0)
+    sequel_secure_password (0.2.3)
+      bcrypt-ruby (>= 3.1, < 4.0)
+      sequel (>= 4.1.0, < 5.0)
     sinatra (1.4.4)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -25,6 +32,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  rack_csrf
   rest-client
+  sequel
+  sequel_secure_password
   sinatra
   twilio-ruby

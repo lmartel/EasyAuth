@@ -1,2 +1,2 @@
-require './intercept'
+require './app'
 run Sinatra::Application
