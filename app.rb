@@ -123,7 +123,7 @@ class User < Sequel::Model
   def validate
     super
     validates_presence :email
-    validates_unique :email, :twilio_sid, :virtual_phone
+    validates_unique [:email, :twilio_sid, :virtual_phone]
     errors.add(:phone, 'Incomplete phone number') if phone and phone.length != 12
   end
 end
@@ -133,7 +133,7 @@ class Transaction < Sequel::Model
 
   def validate
     super
-    validates_presence :user_id, :txn_id, :amount, :timestamp
+    validates_presence [:user_id, :txn_id, :amount, :timestamp]
   end
 end
 
