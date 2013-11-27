@@ -53,6 +53,10 @@ body {
   border-bottom-right-radius: 5px;
 }
 
+.form-login .form-signin-heading, .form-signup .form-signin-heading {
+  text-align: center;
+}
+
 .form-control.error {
   border-color: #FF3838;
   z-index: 1;
