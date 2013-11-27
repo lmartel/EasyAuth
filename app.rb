@@ -9,6 +9,8 @@ require 'rack/csrf'
 require 'twilio-ruby'
 require 'rest-client'
 
+require 'pg'
+require 'newrelic_rpm'
 
 configure :production do
   raise "Missing environment variables" unless ENV['HEROKU_POSTGRESQL_COPPER_URL'] and ENV['TWILIO_SID'] and ENV['TWILIO_TOKEN'] and ENV['SECRET_TOKEN'] and ENV['MAILGUN_KEY']

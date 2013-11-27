@@ -13,5 +13,6 @@ gem 'twilio-ruby'
 # Mailgun via REST API for emails
 gem 'rest-client'
 
-# Postgres database for heroku
+# Heroku addons
 gem 'pg'
+gem 'newrelic_rpm'
