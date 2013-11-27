@@ -149,7 +149,8 @@ class User < Sequel::Model
   end
 
   def recent_message_time
-    return (most_recent_message + 300).strftime("%l:%M %P").strip if recent_message
+    # Add 5 minutes, convert to PST. TODO: redo with Ruby time classes to handle daylight savings etc
+    return (most_recent_message + 300 - (8 * 60 * 60)).strftime("%l:%M %P").strip if recent_message
     nil
   end
 end
