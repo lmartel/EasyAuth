@@ -108,3 +108,35 @@ body {
 .code-description-below {
   margin: 5px 0 0 15px;
 }
+
+.marketing {
+  text-align: center;
+}
+
+.marketing img {
+  border: 1px solid black;
+  width: 100%;
+}
+
+.marketing-examples {
+  height: 100px;
+}
+
+.marketing-examples div {
+  display: inline-block;
+  max-height: 100%;
+}
+
+.marketing-onsite {
+  max-width: 20%; 
+}
+
+.marketing-separator {
+  height:100%; 
+  width: 58px; 
+  vertical-align: middle;
+}
+
+.marketing-email {
+  max-width: 50%;
+}
