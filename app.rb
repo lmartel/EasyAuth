@@ -33,14 +33,22 @@ configure do
 
   DB.create_table? :users do
     primary_key :id
+
+    String :email
+    String :password_digest
+
+    String :email_status
+    String :phone
+
+    DateTime :paid_until
+
+    String :most_recent_code
+    DateTime :most_recent_message
+
     String :twilio_sid
     String :twilio_token
-    String :email
-    String :phone
     String :virtual_phone
-    String :password_digest
-    DateTime :most_recent_message
-    DateTime :paid_until
+
     unique [:email, :twilio_sid, :virtual_phone]
   end
 
@@ -127,8 +135,22 @@ class User < Sequel::Model
     errors.add(:phone, 'Incomplete phone number') if phone and phone.length != 12
   end
 
+  def should_email?
+    email_status.nil? or email_status.to_sym != :disabled
+  end
+
   def paid?
     paid_until and paid_until > Time.now
+  end
+
+  def recent_message
+    return most_recent_code if most_recent_message and most_recent_message + 300 > Time.now
+    nil 
+  end
+
+  def recent_message_time
+    return (most_recent_message + 300).strftime("%l:%M %P").strip if recent_message
+    nil
   end
 end
 
@@ -162,21 +184,32 @@ end
 put '/edit' do
   email = params[:email].length > 0 ? params[:email] : nil
   phone = params[:phone].length > 0 ? parse_phone(params[:phone]) : nil
+  email_codes = params[:email_codes]
   delete_phone = params[:delete_phone]
   password = params[:password].length > 0 ? params[:password] : nil
   password_confirmation = params[:password_confirmation].length > 0 ? params[:password_confirmation] : nil
 
-  print delete_phone 
   user = User[id: current_user]
   user.email = email if email
   user.phone = phone if phone
+
+  should_email_old = user.should_email?
+  if email_codes.nil? or email_codes == "0"
+    user.email_status = :disabled
+  else
+    user.email_status = :enabled
+  end
+
   user.phone = nil if delete_phone and delete_phone != "0"
+
   user.password = password if password
   user.password_confirmation = password_confirmation if password_confirmation
   
   if user.save
     if password
       redirect '/?msg=password_changed' 
+    elsif (should_email_old != user.should_email?) or email or phone or (delete_phone and delete_phone != "0")
+      redirect '/?msg=settings_updated'
     else
       redirect '/'
     end
@@ -230,8 +263,8 @@ post '/get_number' do
       return unless user.paid? # double-check user has paid
       numbers = account.available_phone_numbers.get('US').local.list(area_code: "650")
       if Sinatra::Base.production?
-        number = numbers[0]
-        account.incoming_phone_numbers.create(phone_number: number.phone_number)
+        phone_number = numbers[0].phone_number
+        number = account.incoming_phone_numbers.create(phone_number: phone_number)
       else
         number = TWILIO_TEST_CLIENT.account.incoming_phone_numbers.create(phone_number: "+15005550006")
         spoofed = true
@@ -293,9 +326,11 @@ get '/auth/:user' do
   code = /[0-9][0-9][0-9][0-9][0-9][0-9]/.match(params[:Body])
   halt unless user and code and /Stanford/.match(params[:Body])
   if user.paid?
+    code = code[0] # extract match from regex
+    send_mail user, "[#{params[:From]}] Stanford Authentication Code: #{code}", params[:Body] if user.should_email?
     forward_sms(user, params[:Body]) if user.phone
-    send_mail user, "[#{params[:From]}] Stanford Authentication Code: #{code[0]}", params[:Body]
     user.most_recent_message = DateTime.now
+    user.most_recent_code = code
     user.save
   else
     send_mail user, "Stanford Authentication Code: not found :(", "Your EasyAuth subscription has expired! Go to #{APP_URL} to renew, or contact #{APP_EMAIL} for help."

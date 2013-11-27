@@ -19,7 +19,10 @@ function handleError(err){
 }
 
 function handleMessage(msg){
-	if(msg === "password_changed") $(".container").prepend('<div class="message alert alert-success">Your password has been changed.</div>');
+	var text;
+	if(msg === "password_changed") text = "Your password has been changed.";
+	if(msg === "settings_updated") text = "Your settings have been updated.";
+	if(text) $(".container").prepend('<div class="message alert alert-success">' + text + '</div>');	
 }
 
 function validateEmail(klass, allowBlank){

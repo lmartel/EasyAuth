@@ -1,5 +1,36 @@
 <% user = User[id: current_user] %>
-<div class="col-lg-9">
+<div class="col-md-3 pull-right edit-account">
+    <% if user.recent_message %>
+    <p class="code-description-above">Your most recent code:</p>
+    <div class="badge latest-code"><%= user.recent_message %></div>
+    <p class="code-description-below">(valid until <%= user.recent_message_time %>)</p>
+    <% end %>
+    <form class="form-signin form-edit" action="/edit" method="POST">
+        <h3 class="form-signin-heading">Edit account info:</h3>
+        <span>
+        <input type="text" name="email" class="form-control" placeholder="<%= user.email %>">
+        <input type="text" name="phone" class="form-control" placeholder="<%= format_phone(user.phone) or 'Add phone number'%>">
+        <label>Email my codes<input type="checkbox" name="email_codes" class="change-email-status" value="1" <% if user.should_email? %>checked<% end %>></label>            
+        <% if user.phone %>
+            <label>Delete phone number<input type="checkbox" name="delete_phone" class="delete-phone-number" value="1"></label>
+        <% else %>
+            <p>Adding a phone number will send your authentication codes to both your email and your cell phone.</p>
+        <% end %>
+        </span>
+        <input type="hidden" name="_method" value="put">
+        <%= csrf_tag %>
+        <span>
+        <input type="password" name="password" class="form-control" placeholder="Change password">
+        <input type="password" name="password_confirmation" class="form-control" placeholder="Confirm new password">
+        </span>
+        <button class="btn btn-lg btn-success btn-block" type="submit" onclick="return validateEdit()">Submit changes</button>
+    </form>
+    <form class="form-signin" action="/logout" method="POST">
+        <%= csrf_tag %>
+        <button class="btn btn-lg btn-primary btn-block logout" type="submit">Log out</button>
+    </form>
+</div>
+<div class="col-md-9">
     Hello, <strong><%= user.email %></strong>!
     Your EasyAuth number: <h1 class="well number-display">
         <% if user.virtual_phone %>
@@ -10,13 +41,17 @@
                 <%= csrf_tag %>
             </form>
         <% else %>
-            Get EasyAuth for $2.00/month <%= erb :buy %>
+            Get EasyAuth for $2/month <%= erb :buy %>
         <% end %>
     </h1>
-    Just use your EasyAuth number for SMS Two-Step Authentication to get the codes sent to your email address.
-    <% if user.phone %>
-        <br>The codes will also be sent to your phone at <%= format_phone(user.phone) %>.
-    <% end %>
+    Just use your EasyAuth number for SMS Two-Step Authentication to start using EasyAuth!
+    <ul>
+        <li>Your codes will be displayed on this page.</li>
+        <li>Your codes will be emailed to <%= user.email %>.</li>
+        <% if user.phone %>
+            <li>Your codes will be sent by text message to <%= format_phone(user.phone) %>.</li>
+        <% end %>
+    </ul>
     <h3>How to change your Two-Step Authentication:</h3>
     <div class="list-group instructions">
         <div class="list-group-item">
@@ -76,29 +111,4 @@
             <p class="list-group-item-text">Your Two-Step Auth codes will be emailed to you from now on.</p>
         </div>
     </div>
-</div>
-<div class="col-sm-3">
-    <form class="form-signin" action="/logout" method="POST">
-        <%= csrf_tag %>
-        <button class="btn btn-lg btn-primary btn-block logout" type="submit">Log out</button>
-    </form>
-    <form class="form-signin form-edit" action="/edit" method="POST">
-        <h3 class="form-signin-heading">Edit account info:</h3>
-        <span>
-        <input type="text" name="email" class="form-control" placeholder="<%= user.email %>">
-        <input type="text" name="phone" class="form-control" placeholder="<%= format_phone(user.phone) or 'Add phone number'%>">
-        <% if user.phone %>
-            <label>Delete phone number<input type="checkbox" name="delete_phone" class="delete-phone-number" value="1"></label>
-        <% else %>
-            <p>Adding a phone number will send your authentication codes to both your email and your cell phone.</p>
-        <% end %>
-        </span>
-        <input type="hidden" name="_method" value="put">
-        <%= csrf_tag %>
-        <span>
-        <input type="password" name="password" class="form-control" placeholder="Change password">
-        <input type="password" name="password_confirmation" class="form-control" placeholder="Confirm new password">
-        </span>
-        <button class="btn btn-lg btn-primary btn-block" type="submit" onclick="return validateEdit()">Submit changes</button>
-    </form>
 </div>
