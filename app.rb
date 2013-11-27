@@ -314,6 +314,10 @@ post '/payment/*' do |userID|
   # end
 end
 
+get '/thanks' do
+  erb :thanks
+end
+
 # Reject all voice calls to all numbers
 get '/voice' do
   response = Twilio::TwiML::Response.new do |r|
@@ -338,6 +342,17 @@ get '/auth/:user' do
   end
 end
 
-get '/test' do
-  env['rack.input'].gets
+get '/poll/*' do |userID|
+  user = User[id: userID]
+  if user
+    code = user.recent_message
+    return "#{code}@#{user.recent_message_time}" if code
+  end
+  ''
+end
+
+get '/check_payment/*' do |userID|
+  user = User[id: userID]
+  return 'success!' if user and user.paid?
+  ''
 end

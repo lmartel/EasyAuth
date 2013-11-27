@@ -94,3 +94,65 @@ function validateEdit(){
 	highlightErrors(KLASS, errors);
 	return false;
 }
+
+function renderCode(code, timestamp){
+	if(window.activeCodeTimeout){
+	    clearTimeout(window.activeCodeTimeout);
+	    window.activeCodeTimeout = null;
+	    $(".code-alert").hide();
+	}
+
+    var pieces = timestamp.split(" ");
+    var ampm = pieces[1];
+    pieces = pieces[0].split(":");
+    var hours = parseInt(pieces[0]);
+    var minutes = parseInt(pieces[1]);
+    if(ampm === "am" && hours === 12) hours = 0;
+    if(ampm === "pm") hours += 12;
+
+    var now = new Date
+    var expires = new Date(now.getTime());
+    if(hours < expires.getHours()) expires.setDate(expires.getDate() + 1) // if hours reset, we've rolled over
+    expires.setHours(hours);
+    expires.setMinutes(minutes);
+    expires.setSeconds(0);
+    if(expires > now){
+    	console.log(expires - now);
+        $(".latest-code").text(code);
+        $(".latest-code-time").text(timestamp);
+        $(".code-alert").show();
+
+        window.activeCodeTimeout = setTimeout(function(){
+            $(".code-alert").hide();
+        }, expires - now)
+    }
+}
+
+function poll(prevMessage, userId){
+    $.get('/poll/' + userId, function(data){
+        if(data !== ''){
+            var pieces = data.split("@");
+            var code = pieces[0];
+            var timestamp = pieces[1];
+            if(code !== prevMessage){
+            	prevMessage = code;
+            	renderCode(code, timestamp);
+            }
+        }
+    });
+    setTimeout(function(){
+    	poll(prevMessage, userId);
+    }, 4000);
+}
+
+function pollForPayment(userId){
+	var nextPoll = setTimeout(function(){
+		pollForPayment(userId);
+	}, 1500);
+	$.get('/check_payment/' + userId, function(data){
+        if(data !== ''){
+        	clearTimeout(nextPoll);
+        	window.location = "/";
+        }
+    });
+}
